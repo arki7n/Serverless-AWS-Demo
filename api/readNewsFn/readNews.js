@@ -15,8 +15,15 @@ module.exports.handler = async (event, context, callback) => {
       TableName: table,
       Limit: 10
     }).promise();
+    return {
+      statusCode: 200,
+      headers: {
+          "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+          "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+      },
+      body: JSON.stringify(result),
+  }
 
-    callback(null, result);
   } catch (err) {
     callback(err);
   }
