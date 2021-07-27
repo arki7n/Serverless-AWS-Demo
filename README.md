@@ -9,6 +9,7 @@ The current lambda function does 2 things:
 Additional logic to do pagination, word searching from body article, scehma optimization seems to need more time.
 
 
+```
 Serverless: Stack update finished...
 Service Information
 service: guardian-news-service
@@ -25,3 +26,5 @@ functions:
   guardian-news-service-reader: guardian-news-service-dev-guardian-news-service-reader
 layers:
   None
+  
+  ```
