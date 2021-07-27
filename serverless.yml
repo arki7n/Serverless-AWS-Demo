@@ -1,0 +1,73 @@
+service: guardian-news-service
+
+frameworkVersion: "2.52.1"
+
+plugins:
+  - serverless-create-global-dynamodb-table
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: dev
+  region: us-east-1
+  environment:
+    DDbTABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:BatchWriteItem
+      Resource: "*"
+
+functions:
+  guardian-news-service-scrap:
+    src: api/writeNews/src
+    handler: api/writeNews.handler
+    memorySize: 128
+    description: Scrap news and store in DynamoDB
+    env:
+      APIKEY: 4abda5f2-82c6-4a2b-a5ea-2b986017f4ed
+    events:
+      - schedule: cron(0/30 * * * ? *)
+
+  guardian-news-service-reader:
+    src: api/readNews/src
+    handler: api/readNews.handler
+    memorySize: 128
+    description: Fetch all news via api
+    events:
+      - http:
+          path: news
+          method: get
+
+
+resources:
+  Resources:
+    CandidatesDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: "id"
+            AttributeType: "S"   
+        KeySchema:
+          -
+            AttributeName: "id"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: "NEW_AND_OLD_IMAGES"
+        TableName: ${self:provider.environment.DDbTABLE}
+
+custom:
+  globalTables:
+    version: v1 # optional, default is 'v1'
+    regions: # list of regions in which you want to set up global tables
+      - us-east-1
+    createStack: false
